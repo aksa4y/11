@@ -20,26 +20,94 @@ var Render =
   c.closePath(); c.fillStyle = fill; c.fill();
   if (stroke) { c.strokeStyle = stroke; c.lineWidth = 2; c.stroke(); }
  },
+ backdrop: function (c, w, h, theme, hue)
+ {
+  c.save(); c.strokeStyle = 'hsla(' + hue + ',90%,75%,.24)'; c.fillStyle = 'hsla(' + hue + ',90%,70%,.16)'; c.lineWidth = 1.5;
+  var x = w * .5, y = h * .32;
+  if (theme.pattern === 'waves')
+  {
+   for (var n = 0; n < 9; n++)
+   {
+    c.beginPath();
+    for (var px = 0; px <= w; px += 8)
+    {
+     var py = y + n * h * .045 + Math.sin(px / w * 9 + n * .5) * h * .025;
+     if (px === 0) c.moveTo(px, py); else c.lineTo(px, py);
+    }
+    c.stroke();
+   }
+  }
+  else if (theme.pattern === 'grid')
+  {
+   for (var i = -8; i <= 8; i++) { c.beginPath(); c.moveTo(x + i * w * .012, y); c.lineTo(x + i * w * .16, h); c.stroke(); }
+   for (var j = 0; j < 11; j++) { var gy = y + Math.pow(j / 10, 2) * (h - y); c.beginPath(); c.moveTo(0, gy); c.lineTo(w, gy); c.stroke(); }
+  }
+  else if (theme.pattern === 'sun')
+  {
+   c.beginPath(); c.arc(x, y, h * .19, 0, Math.PI * 2); c.clip();
+   for (var stripe = 0; stripe < 16; stripe++) c.fillRect(x - h * .22, y - h * .20 + stripe * h * .027, h * .44, h * .019);
+  }
+  else
+  {
+   for (var r = 0; r < 3; r++) { c.beginPath(); c.arc(x, y, h * (.13 + r * .03), 0, Math.PI * 2); c.stroke(); }
+  }
+  c.restore();
+ },
+ ball: function (c, x, y, radius, skin)
+ {
+  var hue = skin.hue;
+  c.save(); c.shadowColor = 'hsl(' + hue + ',90%,65%)'; c.shadowBlur = radius;
+  var fill = c.createRadialGradient(x - radius * .35, y - radius * .45, 1, x, y, radius);
+  fill.addColorStop(0, skin.pattern === 'cracks' ? '#b25922' : '#ffffff');
+  fill.addColorStop(.4, 'hsl(' + hue + ',80%,' + (skin.pattern === 'cracks' ? 20 : 85) + '%)');
+  fill.addColorStop(1, 'hsl(' + hue + ',75%,' + (skin.pattern === 'cracks' ? 7 : 40) + '%)');
+  c.fillStyle = fill; c.beginPath(); c.arc(x, y, radius, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0;
+  c.save(); c.beginPath(); c.arc(x, y, radius, 0, Math.PI * 2); c.clip();
+  c.strokeStyle = skin.pattern === 'cracks' ? '#ffb05c' : '#ffffffb0'; c.lineWidth = Math.max(1.3, radius * .045);
+  if (['ring', 'bands', 'orbit'].includes(skin.pattern))
+  {
+   c.beginPath(); c.ellipse(x, y + radius * .2, radius * .94, radius * .27, -.3, 0, Math.PI * 2); c.stroke();
+   if (skin.pattern !== 'ring') { c.beginPath(); c.ellipse(x, y - radius * .25, radius, radius * .29, skin.pattern === 'orbit' ? 1.1 : -.3, 0, Math.PI * 2); c.stroke(); }
+  }
+  else if (skin.pattern === 'rays')
+  {
+   for (var n = 0; n < 12; n++) { var angle = n * Math.PI / 6; c.beginPath(); c.moveTo(x + Math.cos(angle) * radius * .38, y + Math.sin(angle) * radius * .38); c.lineTo(x + Math.cos(angle) * radius, y + Math.sin(angle) * radius); c.stroke(); }
+  }
+  else if (skin.pattern === 'facets')
+  {
+   c.beginPath(); c.moveTo(x, y - radius); c.lineTo(x + radius * .65, y); c.lineTo(x, y + radius); c.lineTo(x - radius * .65, y); c.closePath(); c.moveTo(x - radius, y); c.lineTo(x + radius, y); c.moveTo(x, y - radius); c.lineTo(x, y + radius); c.stroke();
+  }
+  else
+  {
+   for (var k = 0; k < 5; k++) { c.beginPath(); c.moveTo(x - radius + k * radius * .5, y - radius); c.lineTo(x - radius * .7 + k * radius * .4, y - radius * .2); c.lineTo(x - radius + k * radius * .4, y + radius * .3); c.lineTo(x - radius * .5 + k * radius * .4, y + radius); c.stroke(); }
+  }
+  c.restore(); c.restore();
+ },
+ preview: function (canvas, skin, theme)
+ {
+  var c = canvas.getContext('2d'), w = canvas.width, h = canvas.height;
+  var hue = theme.hue === null ? CONFIG.HUES[CONFIG.LEVELS[Game.levelIndex].world] : theme.hue;
+  var gradient = c.createLinearGradient(0, 0, 0, h); gradient.addColorStop(0, 'hsl(' + hue + ',60%,7%)'); gradient.addColorStop(1, 'hsl(' + hue + ',65%,23%)');
+  c.fillStyle = gradient; c.fillRect(0, 0, w, h); this.backdrop(c, w, h, theme, hue);
+  c.fillStyle = 'hsla(' + hue + ',90%,75%,.25)'; c.beginPath(); c.ellipse(w * .5, h * .83, h * .22, h * .045, 0, 0, Math.PI * 2); c.fill();
+  this.ball(c, w * .5, h * .53, h * .23, skin);
+ },
  draw: function (now)
  {
   var c = this.ctx, w = this.width, h = this.height;
   var menu = Game.state === 'menu', mobile = w < 700;
   var center = menu && !mobile ? w * .70 : w * .5;
   var horizon = h * (menu && mobile ? .17 : .30);
-  var hue = CONFIG.HUES[CONFIG.LEVELS[Game.levelIndex].world];
+  var theme = Shop.background();
+  var hue = theme.hue === null ? CONFIG.HUES[CONFIG.LEVELS[Game.levelIndex].world] : theme.hue;
   var time = Game.state === 'playing' || Game.state === 'paused' ? Game.time() : now / 1000;
   var beat = Game.interval ? time / Game.interval - 4 : time * .8;
   var color = function (s, l, a) { return 'hsla(' + hue + ',' + s + '%,' + l + '%,' + (a === undefined ? 1 : a) + ')'; };
   var bg = c.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, color(50, 7)); bg.addColorStop(.5, color(62, 19)); bg.addColorStop(1, color(65, 5)); c.fillStyle = bg; c.fillRect(0, 0, w, h);
   var glow = c.createRadialGradient(center, horizon, 0, center, horizon, h * .7);
   glow.addColorStop(0, color(90, 70, .38)); glow.addColorStop(.45, color(80, 50, .08)); glow.addColorStop(1, color(70, 30, 0)); c.fillStyle = glow; c.fillRect(0, 0, w, h);
-  // Геометрический портал и частицы задают глубину игрового мира.
-  c.save(); c.translate(center, horizon); c.rotate(-.3); c.scale(1, .93);
-  for (var r = 0; r < 3; r++)
-  {
-   c.beginPath(); c.arc(0, 0, h * (.115 + r * .025), 0, Math.PI * 2); c.strokeStyle = color(80, 80, .14 - r * .035); c.lineWidth = r === 0 ? 2 : 1; c.stroke();
-  }
-  c.restore();
+  c.save(); c.translate(center - w * .5, horizon - h * .32);
+  this.backdrop(c, w, h, theme, hue); c.restore();
   for (var n = 0; n < 65; n++)
   {
    var px = (Math.sin(n * 127.1) * .5 + .5) * w;
@@ -87,11 +155,7 @@ var Render =
   var groundY = horizon + h * .52 * (fromScale * (1 - progress) + toScale * progress);
   var by = groundY - width * .52 * (fromScale * (1 - progress) + toScale * progress) * .16 - radius - arc * h * .12;
   c.fillStyle = color(95, 70, .15); c.beginPath(); c.ellipse(bx, groundY - radius * .5, radius * 1.5, radius * .32, 0, 0, Math.PI * 2); c.fill();
-  c.shadowColor = color(90, 75); c.shadowBlur = 35;
-  var ball = c.createRadialGradient(bx - radius * .35, by - radius * .45, 2, bx, by, radius);
-  ball.addColorStop(0, '#ffffff'); ball.addColorStop(.45, '#eaffeb'); ball.addColorStop(1, color(65, 48));
-  c.fillStyle = ball; c.beginPath(); c.arc(bx, by, radius, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0;
-  c.strokeStyle = '#ffffffb0'; c.lineWidth = 2; c.beginPath(); c.ellipse(bx, by + radius * .2, radius * .94, radius * .27, -.3, 0, Math.PI * 2); c.stroke();
+  this.ball(c, bx, by, radius, Shop.skin());
   if (menu)
   {
    var veil = c.createLinearGradient(0, 0, mobile ? 0 : w * .62, mobile ? h : 0);

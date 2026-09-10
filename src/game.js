@@ -8,6 +8,7 @@ var Game =
  time: function () { return Music.context ? Music.context.currentTime - Music.origin : 0; },
  start: function ()
  {
+  this.earnedCoins = 0; this.completionPaid = false;
   this.reviveUsed = false; this.revivePending = false; this.attemptCounted = false; this.countInUntil = 0;
   this.level = CONFIG.LEVELS[this.levelIndex]; this.interval = 60 / this.level.bpm;
   this.score = 0; this.combo = 0; this.maxCombo = 0; this.lives = 3; this.judged = {}; this.resolved = 0; this.perfect = 0;
@@ -31,6 +32,8 @@ var Game =
   var perfect = error <= this.interval * .12;
   this.combo++; this.maxCombo = Math.max(this.combo, this.maxCombo);
   if (perfect) this.perfect++;
+  var coins = perfect ? CONFIG.COINS_PER_PERFECT : CONFIG.COINS_PER_HIT;
+  Progress.addCoins(coins); this.earnedCoins += coins;
   this.score += (perfect ? CONFIG.PERFECT_POINTS : CONFIG.GOOD_POINTS) * Math.min(CONFIG.MAX_MULTIPLIER, 1 + Math.floor(this.combo / 8));
   this.lastIndex = index; this.jumpFrom = this.lane(index); this.jumpTo = this.lane(index + 1); this.lastJump = t;
   this.feedback(perfect ? 'ИДЕАЛЬНО' : 'В РИТМЕ');
@@ -123,11 +126,16 @@ var Game =
   Ads.refreshOffer();
   if (won)
   {
+   if (!this.completionPaid)
+   {
+    this.completionPaid = true; Progress.addCoins(CONFIG.COINS_FOR_COMPLETION); this.earnedCoins += CONFIG.COINS_FOR_COMPLETION;
+   }
    var completed = Progress.get('completed') || {}; completed[this.levelIndex] = Math.max(completed[this.levelIndex] || 0, this.score); Progress.set('completed', completed);
   }
   document.getElementById('result-label').textContent = won ? 'ТРЕК ПРОЙДЕН' : 'ЕЩЁ ОДИН ПРЫЖОК';
   document.getElementById('result-title').textContent = won ? 'Это твой ритм!' : 'Поймаем бит?';
   document.getElementById('final-score').textContent = this.score.toLocaleString('ru');
+  document.getElementById('result-coins').textContent = 'Заработано: +' + this.earnedCoins + ' ◈';
   document.getElementById('result-stats').textContent = 'Идеально: ' + this.perfect + ' • Лучшее комбо: ' + this.maxCombo;
   document.getElementById('btn-next').hidden = !won || this.levelIndex === 11;
   showScreen('screen-gameover');

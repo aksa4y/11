@@ -5,6 +5,7 @@ function showScreen(id)
 }
 function updateHud()
 {
+ document.getElementById('run-coins').textContent = '+' + (Game.earnedCoins || 0) + ' ◈';
  document.getElementById('score').textContent = Game.score.toLocaleString('ru');
  document.getElementById('lives').textContent = '♥ '.repeat(Math.max(0, Game.lives)) + '♡ '.repeat(3 - Math.max(0, Game.lives));
  document.getElementById('combo').textContent = Game.combo > 1 ? 'КОМБО ' + Game.combo + ' / ×' + Math.min(CONFIG.MAX_MULTIPLIER, 1 + Math.floor(Game.combo / 8)) : '';
@@ -16,7 +17,8 @@ function updateMenu()
  document.getElementById('level-number').textContent = 'УРОВЕНЬ ' + String(Game.levelIndex + 1).padStart(2, '0') + ' / 12' + (complete[Game.levelIndex] ? ' ✓' : '');
  document.getElementById('level-name').textContent = level.name;
  document.getElementById('level-meta').textContent = level.bpm + ' BPM · ' + Math.round(level.beats * 60 / level.bpm) + ' СЕК · ' + (Game.levelIndex < 3 ? 'ЛЕГКО' : Game.levelIndex < 8 ? 'СРЕДНЕ' : 'СЛОЖНО');
- document.getElementById('world-name').textContent = CONFIG.WORLDS[level.world];
+ document.getElementById('world-name').textContent = Shop.background().id === 'auto' ? CONFIG.WORLDS[level.world] : Shop.background().name;
+ document.getElementById('menu-coins').textContent = Progress.get('coins').toLocaleString('ru') + ' ◈';
  document.getElementById('menu-record').textContent = 'ЛИЧНЫЙ РЕКОРД  /  ' + Progress.get('highScore').toLocaleString('ru');
 }
 var starting = false;
@@ -42,6 +44,7 @@ function toMenu()
 }
 function bind(id, fn) { document.getElementById(id).addEventListener('click', fn); }
 Progress.load();
+Shop.init();
 Music.muted = !!Progress.get('muted');
 function soundLabel()
 {
@@ -49,6 +52,11 @@ function soundLabel()
  document.getElementById('btn-sound').setAttribute('aria-label', Music.muted ? 'Включить звук' : 'Выключить звук');
 }
 soundLabel(); updateMenu(); Render.init();
+bind('btn-shop', function () { Shop.open(); });
+bind('btn-shop-close', function () { Shop.close(); });
+bind('shop-skins', function () { Shop.selectTab('skins'); });
+bind('shop-backgrounds', function () { Shop.selectTab('backgrounds'); });
+bind('btn-shop-action', function () { Shop.purchase(); });
 bind('btn-play', startGame);
 bind('btn-restart', function () { Ads.between(startGame); });
 bind('btn-revive', function () { Ads.reward(); });
@@ -71,6 +79,7 @@ document.getElementById('screen-game').addEventListener('pointerdown', function 
 document.addEventListener('keydown', function (event)
 {
  if (event.code === 'Space' && Game.state === 'playing') { event.preventDefault(); if (!event.repeat) Game.jump(); }
+ if (event.code === 'Escape' && Game.state === 'shop') { Shop.close(); return; }
  if (event.code === 'Escape') { if (Game.state === 'playing') Game.pause(); else if (Game.state === 'paused') Game.resume(); }
 });
 document.addEventListener('visibilitychange', function () { if (document.hidden) Game.pause(); });
