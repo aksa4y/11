@@ -3,6 +3,26 @@ var Ads =
  busy: false,
  lastRequest: Date.now(),
  results: 0,
+ sdkLoading: false,
+ canRevive: function ()
+ {
+  return Game.state === 'result' && !Game.won && !Game.reviveUsed && Game.nextUnjudged() < Game.level.beats;
+ },
+ unavailableMessage: function ()
+ {
+  if (this.sdkLoading) return 'Реклама ещё загружается. Подожди немного и нажми снова.';
+  if (location.protocol === 'file:' || ['localhost', '127.0.0.1'].includes(location.hostname) || location.hostname.endsWith('.github.io'))
+   return 'В этом запуске реклама недоступна. Просмотр за жизнь работает в версии на Яндекс Играх.';
+  return 'Не удалось подключить рекламу. Попробуй позже или начни попытку заново.';
+ },
+ refreshOffer: function ()
+ {
+  if (Game.state !== 'result') return;
+  var offered = this.canRevive();
+  document.getElementById('revive-offer').hidden = !offered;
+  document.getElementById('btn-revive').hidden = !offered;
+  document.getElementById('ad-status').textContent = offered && !this.available(true) ? this.unavailableMessage() : '';
+ },
  available: function (rewarded)
  {
   var sdk = YandexSDK.ysdk;
@@ -62,7 +82,12 @@ var Ads =
  },
  reward: function ()
  {
-  if (this.busy || Game.state !== 'result' || Game.won || Game.reviveUsed || Game.nextUnjudged() >= Game.level.beats) return;
+  if (this.busy || !this.canRevive()) return;
+  if (!this.available(true))
+  {
+   document.getElementById('ad-status').textContent = this.unavailableMessage();
+   return;
+  }
   this.show(true, function (earned)
   {
    if (earned) Game.revive();

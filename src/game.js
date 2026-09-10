@@ -120,8 +120,7 @@ var Game =
    this.attemptCounted = true; Ads.results++;
    Progress.set('gamesPlayed', Progress.get('gamesPlayed') + 1);
   }
-  document.getElementById('ad-status').textContent = '';
-  document.getElementById('btn-revive').hidden = won || this.reviveUsed || this.nextUnjudged() >= this.level.beats || !Ads.available(true);
+  Ads.refreshOffer();
   if (won)
   {
    var completed = Progress.get('completed') || {}; completed[this.levelIndex] = Math.max(completed[this.levelIndex] || 0, this.score); Progress.set('completed', completed);

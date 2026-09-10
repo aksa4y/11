@@ -81,17 +81,19 @@ requestAnimationFrame(frame);
 // SDK загружается независимо: локальный запуск доступен без платформы.
 if (location.protocol !== 'file:' && !['localhost', '127.0.0.1'].includes(location.hostname))
 {
+ Ads.sdkLoading = true;
  var sdkScript = document.createElement('script'); sdkScript.src = '/sdk.js'; sdkScript.async = true;
  sdkScript.onload = function ()
  {
   YandexSDK.init(function ()
   {
    YandexSDK.notifyReady();
-   if (Game.state === 'result') document.getElementById('btn-revive').hidden = Game.won || Game.reviveUsed || Game.nextUnjudged() >= Game.level.beats || !Ads.available(true);
+   Ads.sdkLoading = false; Ads.refreshOffer();
    if (Game.state === 'playing') YandexSDK.gameplayStart();
    if (YandexSDK.ysdk && YandexSDK.ysdk.on)
     YandexSDK.ysdk.on('game_api_pause', function () { Game.pause(); });
   });
  };
+ sdkScript.onerror = function () { Ads.sdkLoading = false; Ads.refreshOffer(); };
  document.head.appendChild(sdkScript);
 }
