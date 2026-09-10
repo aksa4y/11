@@ -64,84 +64,17 @@ var YandexSDK =
 			this.ysdk.features.GameplayAPI.stop();
 	},
 
-	/**
-	 * Rewarded-реклама. Ставит звук и геймплей на паузу автоматически.
-	 * @param {function} onSuccess — после полного просмотра
-	 * @param {function} [onError]
-	 */
 	showRewarded: function (onSuccess, onError)
 	{
-		if (!this.ysdk)
+		Ads.show(true, function (earned)
 		{
-			if (onError) onError();
-			return;
-		}
-
-		var self = this;
-		this.ysdk.adv.showRewardedVideo(
-		{
-			callbacks:
-			{
-				onOpen: function ()
-				{
-					SoundManager.pauseAll();
-					self.gameplayStop();
-				},
-				onRewarded: function ()
-				{
-					if (onSuccess) onSuccess();
-				},
-				onClose: function ()
-				{
-					SoundManager.resumeAll();
-					self.gameplayStart();
-				},
-				onError: function ()
-				{
-					SoundManager.resumeAll();
-					self.gameplayStart();
-					if (onError) onError();
-				},
-			},
+			if (earned) { if (onSuccess) onSuccess(); }
+			else if (onError) onError();
 		});
 	},
-
-	/**
-	 * Межстраничная реклама. Показывать в логических паузах.
-	 * @param {function} [onClose]
-	 */
 	showInterstitial: function (onClose)
 	{
-		if (!this.ysdk)
-		{
-			if (onClose) onClose();
-			return;
-		}
-
-		var self = this;
-		this.ysdk.adv.showFullscreenAdv(
-		{
-			callbacks:
-			{
-				onOpen: function ()
-				{
-					SoundManager.pauseAll();
-					self.gameplayStop();
-				},
-				onClose: function ()
-				{
-					SoundManager.resumeAll();
-					self.gameplayStart();
-					if (onClose) onClose();
-				},
-				onError: function ()
-				{
-					SoundManager.resumeAll();
-					self.gameplayStart();
-					if (onClose) onClose();
-				},
-			},
-		});
+		Ads.show(false, function () { if (onClose) onClose(); });
 	},
 };
 

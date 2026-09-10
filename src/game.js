@@ -8,6 +8,7 @@ var Game =
  time: function () { return Music.context ? Music.context.currentTime - Music.origin : 0; },
  start: function ()
  {
+  this.reviveUsed = false; this.revivePending = false; this.attemptCounted = false; this.countInUntil = 0;
   this.level = CONFIG.LEVELS[this.levelIndex]; this.interval = 60 / this.level.bpm;
   this.score = 0; this.combo = 0; this.maxCombo = 0; this.lives = 3; this.judged = {}; this.resolved = 0; this.perfect = 0;
   this.lastIndex = -1; this.jumpFrom = this.lane(0); this.jumpTo = this.lane(0); this.lastJump = -10;
@@ -60,7 +61,7 @@ var Game =
    }
   }
   if (t > this.feedbackUntil) document.getElementById('feedback').textContent = '';
-  var remaining = Math.ceil(4 - t / this.interval);
+  var remaining = Math.ceil(((this.countInUntil || 4 * this.interval) - t) / this.interval);
   document.getElementById('countdown').textContent = remaining > 0 ? (remaining <= 4 ? remaining : '') : '';
   document.getElementById('beat-marker').style.left = (50 + Math.sin(t / this.interval * Math.PI) * 48) + '%';
   document.getElementById('track-progress').style.width = Math.max(0, Math.min(100, (t / this.interval - 4) / this.level.beats * 100)) + '%';
@@ -69,17 +70,58 @@ var Game =
  pause: function ()
  {
   if (this.state !== 'playing') return;
-  this.state = 'paused'; Music.context.suspend(); YandexSDK.gameplayStop(); showScreen('screen-pause');
+  this.state = 'paused'; document.getElementById('pause-message').textContent = 'Твой ритм никуда не ушёл.'; Music.context.suspend(); YandexSDK.gameplayStop(); showScreen('screen-pause');
  },
  resume: function ()
  {
   if (this.state !== 'paused') return;
-  Music.context.resume().then(function () { Game.state = 'playing'; showScreen('screen-game'); YandexSDK.gameplayStart(); });
+  if (this.resuming) return;
+  this.resuming = true;
+  var pending = this.revivePending;
+  var operation = pending ? Music.reset() : Music.context.resume();
+  operation.then(function ()
+  {
+   if (Game.state !== 'paused') return;
+   if (pending)
+   {
+    var next = Game.nextUnjudged();
+    Music.origin = Music.context.currentTime - next * Game.interval;
+    Music.nextStep = next * 2;
+    Game.countInUntil = (next + 4) * Game.interval;
+    Game.lastIndex = next - 1; Game.lastJump = -10; Game.lastBad = -10;
+    Game.revivePending = false;
+   }
+   if (document.hidden) { Music.context.suspend(); return; }
+   Game.state = 'playing'; showScreen('screen-game'); YandexSDK.gameplayStart();
+  }).catch(function () { document.getElementById('pause-message').textContent = 'Не удалось включить звук. Нажми «Продолжить» ещё раз.'; })
+   .finally(function () { Game.resuming = false; });
+ },
+ nextUnjudged: function ()
+ {
+  var next = 0;
+  while (next < this.level.beats && this.judged[next]) next++;
+  return next;
+ },
+ revive: function ()
+ {
+  if (this.state !== 'result' || this.won || this.reviveUsed) return;
+  this.reviveUsed = true; this.revivePending = true; this.lives = 1; this.combo = 0;
+  this.state = 'paused'; updateHud();
+  document.getElementById('pause-message').textContent = 'Жизнь получена! После продолжения — четыре бита на подготовку.';
+  showScreen('screen-pause');
  },
  finish: function (won)
  {
+  this.won = won;
   this.state = 'result'; Music.context.suspend(); YandexSDK.gameplayStop();
-  Progress.updateHighScore(this.score); Progress.set('gamesPlayed', Progress.get('gamesPlayed') + 1);
+  Progress.updateHighScore(this.score);
+  if (!this.attemptCounted)
+  {
+   this.attemptCounted = true; Ads.results++;
+   Progress.set('gamesPlayed', Progress.get('gamesPlayed') + 1);
+  }
+  document.getElementById('ad-status').textContent = '';
+  document.getElementById('btn-revive').hidden = won || this.reviveUsed || this.nextUnjudged() >= this.level.beats || !Ads.available(true);
   if (won)
   {
    var completed = Progress.get('completed') || {}; completed[this.levelIndex] = Math.max(completed[this.levelIndex] || 0, this.score); Progress.set('completed', completed);

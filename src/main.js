@@ -22,7 +22,7 @@ function updateMenu()
 var starting = false;
 function startGame()
 {
- if (starting) return;
+ if (starting || Ads.busy) return;
  starting = true;
  // Новый контекст убирает ноты предыдущей попытки из очереди.
  var closing = Music.context ? Music.context.close() : Promise.resolve();
@@ -37,6 +37,7 @@ function startGame()
 }
 function toMenu()
 {
+ if (Ads.busy || Game.resuming) return;
  Game.state = 'menu'; if (Music.context) Music.context.suspend(); YandexSDK.gameplayStop(); updateMenu(); showScreen('screen-menu');
 }
 function bind(id, fn) { document.getElementById(id).addEventListener('click', fn); }
@@ -48,10 +49,18 @@ function soundLabel()
  document.getElementById('btn-sound').setAttribute('aria-label', Music.muted ? 'Включить звук' : 'Выключить звук');
 }
 soundLabel(); updateMenu(); Render.init();
-bind('btn-play', startGame); bind('btn-restart', startGame);
+bind('btn-play', startGame);
+bind('btn-restart', function () { Ads.between(startGame); });
+bind('btn-revive', function () { Ads.reward(); });
+bind('btn-ready', function ()
+{
+ if (Ads.busy || Game.state !== 'ready') return;
+ var action = Ads.nextAction; Ads.nextAction = null;
+ if (action) action();
+});
 bind('btn-pause', function () { Game.pause(); }); bind('btn-resume', function () { Game.resume(); });
-bind('btn-menu', toMenu); bind('btn-pause-menu', toMenu);
-bind('btn-next', function () { Game.levelIndex = Math.min(11, Game.levelIndex + 1); startGame(); });
+bind('btn-menu', function () { Ads.between(toMenu); }); bind('btn-pause-menu', toMenu);
+bind('btn-next', function () { Ads.between(function () { Game.levelIndex = Math.min(11, Game.levelIndex + 1); startGame(); }); });
 bind('level-prev', function () { Game.levelIndex = (Game.levelIndex + 11) % 12; updateMenu(); });
 bind('level-next', function () { Game.levelIndex = (Game.levelIndex + 1) % 12; updateMenu(); });
 bind('btn-sound', function () { Music.mute(); soundLabel(); });
@@ -78,6 +87,7 @@ if (location.protocol !== 'file:' && !['localhost', '127.0.0.1'].includes(locati
   YandexSDK.init(function ()
   {
    YandexSDK.notifyReady();
+   if (Game.state === 'result') document.getElementById('btn-revive').hidden = Game.won || Game.reviveUsed || Game.nextUnjudged() >= Game.level.beats || !Ads.available(true);
    if (Game.state === 'playing') YandexSDK.gameplayStart();
    if (YandexSDK.ysdk && YandexSDK.ysdk.on)
     YandexSDK.ysdk.on('game_api_pause', function () { Game.pause(); });

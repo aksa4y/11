@@ -1,6 +1,7 @@
 var CONFIG =
 {
  GAME_ID: 'pulse_rhythm_v1', SOUND_ENABLED: true,
+ AD_MIN_INTERVAL_MS: 90000,
  PERFECT_POINTS: 100, GOOD_POINTS: 60, MAX_MULTIPLIER: 8,
  LEVELS: [],
  WORLDS: ['Изумрудный рассвет', 'Лунный прилив', 'Аметистовый сон', 'Золотой горизонт'],

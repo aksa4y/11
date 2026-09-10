@@ -12,6 +12,11 @@ var Music =
   }
   return this.context.resume();
  },
+ reset: function ()
+ {
+  var closing = this.context ? this.context.close() : Promise.resolve();
+  return closing.then(function () { Music.context = null; return Music.init(); });
+ },
  tone: function (frequency, time, length, type, volume)
  {
   var oscillator = this.context.createOscillator();
