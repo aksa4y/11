@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#06251e"><title>Пульс — прыжки в ритм</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+<canvas id="game-canvas" aria-label="Игровое поле со светящимися платформами"></canvas>
+<header class="top"><div class="brand"><span class="brand__mark">◈</span> ПУЛЬС <small>ПРЫЖКИ В РИТМ</small></div><div class="top__buttons"><button id="btn-sound" aria-label="Выключить звук">♫</button><button id="btn-pause" aria-label="Пауза" hidden>Ⅱ</button></div></header>
+<main>
+<section id="screen-menu" class="screen is-active">
+<div class="menu"><div class="eyebrow">ПОЧУВСТВУЙ КАЖДЫЙ БИТ</div><h1>Поймай<br>свой <em>ритм.</em></h1><p class="intro">Прыгай по свету.<br>Доверься музыке.</p><div class="level-picker"><button id="level-prev" aria-label="Предыдущий уровень">‹</button><div><span id="level-number"></span><h2 id="level-name"></h2><div id="level-meta"></div></div><button id="level-next" aria-label="Следующий уровень">›</button></div><button class="primary" id="btn-play">ИГРАТЬ <span>↗</span></button><p class="hint">Пробел / клик / касание — прыжок в такт</p><div class="record" id="menu-record"></div></div>
+<div class="scene-label"><span>01 / ЗВУКОВЫЕ МИРЫ</span><strong id="world-name">Изумрудный рассвет</strong><div class="equalizer"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+</section>
+<section id="screen-game" class="screen"><div class="hud"><div><span>ОЧКИ</span><strong id="score">0</strong></div><div class="hud__right"><span id="track-title"></span><strong id="lives">♥ ♥ ♥</strong></div></div><div class="track-progress"><i id="track-progress"></i></div><div id="feedback" aria-live="polite"></div><div id="combo"></div><div class="rhythm"><div id="countdown"></div><div class="rhythm__track"><i id="beat-marker"></i><b></b></div><p>НАЖИМАЙ, КОГДА СВЕТ В ЦЕНТРЕ</p><button id="btn-jump" class="jump">ПРЫЖОК <span>ПРОБЕЛ / КАСАНИЕ</span></button></div></section>
+<section id="screen-pause" class="screen modal"><div class="card"><div class="eyebrow">МОЖНО ВЫДОХНУТЬ</div><h2>Пауза</h2><p>Твой ритм никуда не ушёл.</p><button id="btn-resume" class="primary">ПРОДОЛЖИТЬ ↗</button><button id="btn-pause-menu" class="secondary">К уровням</button></div></section>
+<section id="screen-gameover" class="screen modal"><div class="card"><div class="eyebrow" id="result-label"></div><h2 id="result-title"></h2><div id="final-score" class="final-score"></div><p id="result-stats"></p><button id="btn-restart" class="primary">ЕЩЁ РАЗ ↗</button><button id="btn-next" class="secondary">Следующий уровень</button><button id="btn-menu" class="secondary">К уровням</button></div></section>
+</main><script src="src/config.js"></script><script src="src/progress.js"></script><script src="src/i18n.js"></script><script src="src/yandex-sdk.js"></script><script src="src/audio.js"></script><script src="src/game.js"></script><script src="src/render.js"></script><script src="src/main.js"></script></body></html>

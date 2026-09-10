@@ -1,0 +1,86 @@
+:root
+{
+ --ink:#effff5; --muted:#a1c6b9; --accent:#b7ff70; --panel:#07281fe8; --line:#d6ffe331;
+ font-family:Arial,Helvetica,sans-serif; color:var(--ink); background:#041e19;
+}
+* { box-sizing:border-box; }
+body { margin:0; overflow:hidden; overscroll-behavior:none; user-select:none; -webkit-user-select:none; }
+button { font:inherit; cursor:pointer; color:inherit; border:1px solid var(--line); background:#123a3066; border-radius:50%; min-width:48px; min-height:48px; touch-action:manipulation; }
+button:hover { background:#80df7133; }
+button:focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
+button[hidden] { display:none; }
+#game-canvas { position:fixed; inset:0; width:100%; height:100%; touch-action:none; }
+.top { position:fixed; z-index:3; top:0; width:100%; padding:28px 4%; display:flex; justify-content:space-between; align-items:center; pointer-events:none; }
+.brand { font-size:24px; font-weight:800; letter-spacing:4px; }
+.brand__mark { color:var(--accent); font-size:33px; vertical-align:middle; }
+.brand small { font-size:11px; font-weight:400; letter-spacing:2px; margin-left:18px; }
+.top__buttons { display:flex; gap:10px; pointer-events:auto; }
+.top__buttons button { font-size:24px; }
+.screen { display:none; position:fixed; inset:0; }
+.screen.is-active { display:block; }
+.menu { position:absolute; top:50%; left:9%; transform:translateY(-45%); width:350px; }
+.eyebrow { font-size:12px; letter-spacing:2.4px; color:var(--accent); font-weight:700; }
+h1 { font-size:clamp(58px,6.2vw,92px); line-height:1.02; letter-spacing:-5px; margin:23px 0; }
+h1 em { color:var(--accent); font-style:normal; }
+.intro { font-size:18px; line-height:1.55; color:var(--muted); }
+.level-picker { display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--line); margin-top:30px; padding:20px 0; gap:16px; }
+.level-picker button { min-width:36px; min-height:36px; font-size:25px; }
+.level-picker > div { flex:1; }
+#level-number,#level-meta { font-size:12px; color:var(--muted); letter-spacing:1px; }
+#level-name { font-size:19px; margin:8px 0; }
+.primary { width:100%; border:0; border-radius:12px; padding:20px 25px; color:#11251b; background:var(--accent); font-weight:800; font-size:16px; letter-spacing:1px; }
+.primary:hover { background:#d0ffac; }
+.primary span { float:right; }
+.hint { font-size:12px; text-align:center; color:var(--muted); }
+.record { text-align:center; font-size:13px; color:var(--accent); margin-top:20px; }
+.scene-label { position:absolute; right:7%; bottom:7%; text-align:right; }
+.scene-label > span { display:block; letter-spacing:2px; color:var(--muted); font-size:11px; margin-bottom:12px; }
+.scene-label strong { font-size:20px; font-weight:400; }
+.equalizer { display:flex; gap:4px; justify-content:flex-end; align-items:center; height:32px; margin-top:10px; }
+.equalizer i { width:3px; background:var(--accent); height:12px; animation:wave 1s infinite alternate; }
+.equalizer i:nth-child(3n) { height:25px; animation-delay:-.7s; }
+.equalizer i:nth-child(2n) { height:7px; animation-delay:-.3s; }
+@keyframes wave { to { transform:scaleY(.35); } }
+.hud { position:absolute; top:108px; left:5%; right:5%; display:flex; justify-content:space-between; }
+.hud span { font-size:12px; color:var(--muted); letter-spacing:2px; display:block; }
+.hud strong { display:block; font-size:36px; margin-top:8px; }
+.hud__right { text-align:right; }
+#lives { color:var(--accent); font-size:24px; }
+.track-progress { position:absolute; top:91px; height:2px; left:5%; right:5%; background:var(--line); }
+.track-progress i { display:block; height:100%; background:var(--accent); width:0; }
+#feedback { position:absolute; top:29%; width:100%; text-align:center; font-size:36px; font-weight:800; color:var(--accent); text-shadow:0 0 30px #83ffb1; }
+#combo { position:absolute; top:36%; width:100%; text-align:center; letter-spacing:3px; font-size:14px; }
+.rhythm { position:absolute; bottom:25px; left:50%; transform:translateX(-50%); width:min(360px,85vw); text-align:center; }
+.rhythm p { font-size:11px; letter-spacing:1.5px; color:var(--muted); }
+.rhythm__track { position:relative; height:12px; border-bottom:2px solid var(--line); margin:0 25px 15px; }
+.rhythm__track b { position:absolute; left:calc(50% - 12px); width:24px; height:24px; top:-5px; border:2px solid var(--accent); border-radius:50%; }
+.rhythm__track i { position:absolute; left:0; width:12px; height:12px; border-radius:50%; background:var(--ink); box-shadow:0 0 18px var(--accent); }
+.jump { border-radius:14px; width:100%; background:#0c3b30e0; border-color:#b7ff7077; font-weight:700; padding:13px; letter-spacing:2px; }
+.jump span { display:block; font-size:10px; color:var(--muted); margin-top:5px; }
+#countdown { font-size:30px; font-weight:800; margin-bottom:20px; }
+.modal { background:#031c17a8; backdrop-filter:blur(12px); z-index:4; }
+.modal.is-active { display:grid; place-items:center; }
+.card { width:min(410px,90vw); text-align:center; padding:35px; border:1px solid var(--line); background:var(--panel); border-radius:24px; }
+.card h2 { font-size:38px; margin:22px 0; }
+.card p { color:var(--muted); line-height:1.7; }
+.secondary { display:block; width:100%; border-radius:12px; margin-top:12px; font-size:15px; }
+.final-score { font-size:64px; color:var(--accent); font-weight:800; }
+@media(max-width:700px)
+{
+ .top { padding:18px 6%; } .brand { font-size:20px; } .brand small { display:none; }
+ .menu { left:7%; width:86%; top:auto; bottom:30px; transform:none; }
+ h1 { font-size:56px; letter-spacing:-3px; margin:12px 0; }
+ .intro { display:none; } .eyebrow { font-size:10px; }
+ .level-picker { margin-top:20px; padding:15px 0; background:#05291e66; }
+ .scene-label { display:none; } .record { margin-top:13px; }
+ .hud { top:95px; } .track-progress { top:81px; }
+ #feedback { font-size:28px; } #combo { top:35%; }
+ .rhythm { bottom:max(16px,env(safe-area-inset-bottom)); }
+}
+@media(max-height:600px)
+{
+ .menu { top:95px; bottom:auto; transform:none; width:300px; } h1 { font-size:42px; margin:8px 0; }
+ .intro,.record,.menu > .eyebrow { display:none; } .level-picker { margin-top:8px; padding:10px 0; }
+ .top { padding-top:12px; } .rhythm { bottom:10px; } .rhythm p,.jump span { display:none; }
+ .card { padding:20px; } .card h2 { font-size:28px; margin:12px; } .final-score { font-size:44px; }
+}
